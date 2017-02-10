@@ -81,11 +81,15 @@ class PostEntry {
                 strcpy(date, "Dec. ");
                 break;
         }
-        sprintf(copy, "%d, %d %d:%d",tm.tm_mday,tm.tm_year + 1900, tm.tm_hour % 12, tm.tm_min);
+        sprintf(copy, "%d, %d",tm.tm_mday,tm.tm_year + 1900);
         strcat(date, copy);
-        if((tm.tm_hour / 12) > 1) {
+        if(tm.tm_hour < 12) {
+            sprintf(copy, " %d:%d", tm.tm_hour, tm.tm_min);
+            strcat(date, copy);
             strcat(date, "AM");
         } else {
+            sprintf(copy, " %d:%d", tm.tm_hour - 12, tm.tm_min);
+            strcat(date, copy);
             strcat(date, "PM");
         }
     }
