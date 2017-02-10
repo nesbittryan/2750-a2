@@ -1,6 +1,5 @@
 #!/usr/bin/python3
-import sys
-import curses
+import os, sys, curses
 
 def getUsername(inputArgs):
     if len(inputArgs) <= 1:
@@ -115,17 +114,19 @@ def markAllRead(username, streamname):
     outFileDataName = "messages/" + streamname + "StreamData"
     outFileUserName = "messages/" + streamname + "UserStream"
     fp = open(outFileDataName, "r")
-    count = 1
+    count = 0
     for line in fp:
         count = count + 1
     fp.close()
-    fp = open(outFileUserName, "r+")
+    fp = open(outFileUserName, "r")
+    fpcopy = open("copy", "w")
     for line in fp:
         if line.strip(" \n0123456789") == username:
-            fp.write("username " + str(count))
+            fpcopy.write(username + " " + str(count))
         else:
-            fp.write(line)
-
+            fpcopy.write(line)
+    fpcopy.close
+    os.rename("copy", outFileUserName)
 def main():
     #checking for valid username, and placing it into variable
     username = getUsername(sys.argv)
