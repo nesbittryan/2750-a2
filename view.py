@@ -81,8 +81,12 @@ def getToPrint(readList, unreadList, streamname, username):
     count = 0
     for line in fPtr:
         if count < offset:
+            if "Sender:" in line:
+                readList.append("Stream: " + streamname + "\n")
             readList.append(line)
         else:
+            if "Sender:" in line:
+                readList.append("Stream: " + streamname + "\n")
             unreadList.append(line)
         for char in line:
             count = count + 1
@@ -151,25 +155,28 @@ def markAllRead(username, streamname):
     fpcopy.close
     os.rename("copy", outFileUserName)
 
-def updateReadMessages(streamname, username, currentLineNumber, unreadList, readList):
+def updateReadMessages(streamname, username, currentLineNumber, unreadList):
     outFileDataName = "messages/" + streamname + "StreamData"
     outFileUserName = "messages/" + streamname + "UserStream"
     outFileStreamName = "messages/" + streamname + "Stream"
     j = 0
     read = 0
-
-
-    for item in readList:
-        if "Sender:" in item:
-            read = read + 1
-
+    flag = 0
+    fp = open(outFileUserName, "r")
+    for line in fp:
+        if username == line.strip(" \n0123456789"):
+            num = line.strip(username + " ")
+            read = read + int(num)
+            break
+    fp.close()
     for item in unreadList:
-        if "Sender:" in item:
+        if "Sender: " in item:
             read = read + 1
         j = j + 1
         x = j + currentLineNumber
         if x >= 24:
             break
+
     #writing to output file
     fpUser = open(outFileUserName, "r+")
     fpcopy = open("copy", "w")
@@ -233,11 +240,11 @@ def main():
             needToPrint = 1
 
         #add update read messages
-        if inputFlag == "all":
+        if inputFlag == "all" and mode == "chrono":
             for stream in userPermissionStreamList:
-                updateReadMessages(stream, username, currentLineNumber, unreadList, readList)
-        else:
-            updateReadMessages(inputFlag, username, currentLineNumber, unreadList, readList)
+                updateReadMessagesAll(stream, username, currentLineNumber, unreadList)
+        elif mode == "chrono":
+            updateReadMessages(inputFlag, username, currentLineNumber, unreadList)
 
         # determines if it needs to print if a certain action is taken
         if needToPrint == 1:
