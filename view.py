@@ -89,6 +89,29 @@ def getToPrint(readList, unreadList, streamname, username):
     fPtr.close()
     return readList, unreadList
 
+def sortByAuthor(readList, unreadList):
+    combinedList = readList + unreadList
+    authorList = []
+    tempList = []
+    for item in combinedList:
+        if "Sender:" in item:
+            print(item)
+            if tempList:
+                copyList = tempList[:]
+                authorList.append(copyList)
+                tempList[:] = []
+        tempList.append(item)
+    if tempList:
+        copyList = tempList[:]
+        authorList.append(copyList)
+
+    authorList.sort(key=lambda x: x[0])
+    finalList = []
+    for l in authorList:
+        for item in l:
+            finalList.append(item)
+    return finalList
+
 def printToWindow(window, readList, unreadList, currentLineNumber):
     window.clear()
     allList = unreadList + readList
@@ -122,11 +145,43 @@ def markAllRead(username, streamname):
     fpcopy = open("copy", "w")
     for line in fp:
         if line.strip(" \n0123456789") == username:
-            fpcopy.write(username + " " + str(count))
+            fpcopy.write(username + " " + str(count) + "\n")
         else:
             fpcopy.write(line)
     fpcopy.close
     os.rename("copy", outFileUserName)
+
+def updateReadMessages(streamname, username, currentLineNumber, unreadList, readList):
+    outFileDataName = "messages/" + streamname + "StreamData"
+    outFileUserName = "messages/" + streamname + "UserStream"
+    outFileStreamName = "messages/" + streamname + "Stream"
+    j = 0
+    read = 0
+
+
+    for item in readList:
+        if "Sender:" in item:
+            read = read + 1
+
+    for item in unreadList:
+        if "Sender:" in item:
+            read = read + 1
+        j = j + 1
+        x = j + currentLineNumber
+        if x >= 24:
+            break
+    #writing to output file
+    fpUser = open(outFileUserName, "r+")
+    fpcopy = open("copy", "w")
+    for line in fpUser:
+        if username == line.strip(" \n0123456789"):
+            fpcopy.write(username + " " + str(read) + "\n")
+        else:
+            fpcopy.write(line)
+    fpUser.close()
+    fpcopy.close
+    os.rename("copy", outFileUserName)
+
 def main():
     #checking for valid username, and placing it into variable
     username = getUsername(sys.argv)
@@ -145,11 +200,13 @@ def main():
 
     # init curses
     window = curses.initscr()
+    #curses.start_color()
     curses.noecho()
     window = curses.newwin(24, 80, 0, 0)
 
     # looping and printing
     unreadList = []
+    mode = "chrono"
     readList = []
     currentLineNumber = 0
     updateListFlag = 1
@@ -160,6 +217,8 @@ def main():
             readList = []
             for stream in userPermissionStreamList:
                 readList, unReadList = getToPrint(readList, unreadList, stream, username)
+                if mode == "author":
+                    readList = sortByAuthor(readList, unreadList)
                 currentLineNumber = 0
                 updateListFlag = 0
                 needToPrint = 1
@@ -167,9 +226,18 @@ def main():
             unreadList = []
             readList = []
             readList, unReadList = getToPrint(readList, unreadList, inputFlag, username)
+            if mode == "author":
+                readList = sortByAuthor(readList, unreadList)
             currentLineNumber = 0
             updateListFlag = 0
             needToPrint = 1
+
+        #add update read messages
+        if inputFlag == "all":
+            for stream in userPermissionStreamList:
+                updateReadMessages(stream, username, currentLineNumber, unreadList, readList)
+        else:
+            updateReadMessages(inputFlag, username, currentLineNumber, unreadList, readList)
 
         # determines if it needs to print if a certain action is taken
         if needToPrint == 1:
@@ -179,18 +247,23 @@ def main():
 
         c = window.getch()
 
-        if c == 65:         # change to page up
+        if c == ord('i'):#curses.KEY_PPAGE:      # change to page up
             currentLineNumber = currentLineNumber - 23;
             if currentLineNumber < 0:
                 currentLineNumber = 0
             needToPrint = 1
-        elif c == 66:       # change to page down
+        elif c == ord('k'):#curses.KEY_NPAGE:        # change to page down
             currentLineNumber = currentLineNumber + 23;
             maxline = getLastLine(readList, unreadList)
-            if currentLineNumber > int(maxline):
+            if currentLineNumber >= int(maxline):
                 currentLineNumber = currentLineNumber - 23
             needToPrint = 1
-        #elif c == ord('o') or c == ord('O'):
+        elif c == ord('o') or c == ord('O'):
+            if mode == "author":
+                mode = "chrono"
+            else:
+                mode = "author"
+            updateListFlag = 1
         elif c == ord('m') or c == ord('M'):
             if inputFlag == "all":
                 for stream in userPermissionStreamList:
@@ -204,6 +277,7 @@ def main():
             curses.endwin()
             for word in userPermissionStreamList:
                 print (word.strip(), end=' ')
+            print ("all")
             inputFlag = getStreamChoice(userPermissionStreamList)
             window = curses.initscr()
             curses.noecho()
