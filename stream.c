@@ -95,6 +95,7 @@ void addUser(char *username, char *list) {
     char * listCopy = malloc(sizeof(char) * strlen(list) + 1);
     strcpy(listCopy, list);
     char * token = strtok(listCopy, ",");
+    int flag = 0;
     /* parsing through list */
     while(token != NULL) {
         char * filename = malloc(sizeof(char) * strlen(list) + 20);
@@ -125,13 +126,33 @@ void addUser(char *username, char *list) {
 
         } else {
             /* STREAM DOES EXIST */
+            char str[100];
+            while(fgets(str, 99, userStreamFile) != NULL) {
+                char * copyStr = malloc(sizeof(char) * strlen(str) + 1);
+                strcpy(copyStr, str);
+                char * ptr = copyStr;
+                int i = 0;
+                for(i = strlen(ptr) - 1; i > 0; --i) {
+                    if(ptr[i] == ' ') {
+                        ptr[i] = '\0';
+                        break;
+                    }
+                }
+                if(strcmp(copyStr, username) == 0) {
+                    printf("%s already has access to %s, aborting...\n", username, token);
+                    flag = 1;
+                }
+                free(copyStr);
+            }
             fclose(userStreamFile);
         }
-        userStreamFile = fopen(filename, "a+");
-        /* adding user to end of file */
-        fprintf(userStreamFile, "%s 0\n", username);
-        fclose(userStreamFile);
-        printf("%s added to stream <%s>...\n", username, token);
+        if(flag == 0) {
+            userStreamFile = fopen(filename, "a+");
+            /* adding user to end of file */
+            fprintf(userStreamFile, "%s 0\n", username);
+            fclose(userStreamFile);
+            printf("%s added to stream <%s>...\n", username, token);
+        }
         free(filename);
         token = strtok(NULL, ",");
     }
@@ -155,7 +176,7 @@ void removeUser(char *username, char *list) {
             /* STREAM DOES EXIST */
             FILE *copy = fopen("messages/copy", "w");
             char str[100];
-            while(fgets(str, 100, userStreamFile) != NULL) {
+            while(fgets(str, 99, userStreamFile) != NULL) {
                 char * copyStr = malloc(sizeof(char) * strlen(str) + 1);
                 strcpy(copyStr, str);
                 char * ptr = copyStr;

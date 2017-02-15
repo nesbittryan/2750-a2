@@ -59,6 +59,7 @@ def getReadMessages(username, outFileUserName):
         if line.strip(" \n0123456789") == username:
             for s in line.split():
                 if s.isdigit():
+                    fPtr.close()
                     return s
     return 0
 
@@ -86,11 +87,13 @@ def getToPrint(readList, unreadList, streamname, username):
             readList.append(line)
         else:
             if "Sender:" in line:
-                readList.append("Stream: " + streamname + "\n")
+                unreadList.append("Stream: " + streamname + "\n")
             unreadList.append(line)
         for char in line:
             count = count + 1
+
     fPtr.close()
+
     return readList, unreadList
 
 def sortByAuthor(readList, unreadList):
@@ -125,10 +128,10 @@ def printToWindow(window, readList, unreadList, currentLineNumber):
         if(count < int(currentLineNumber)):
             count = count + 1
             continue
-        if(currentLines < 23):
+        if currentLines < 23 :
             window.addstr(line)
             currentLines = currentLines + 1
-        count = count + 1
+            count = count + 1
 
 def getLastLine(readList, unreadList):
     allList = unreadList + readList
