@@ -101,7 +101,7 @@ def sortByAuthor(readList, unreadList):
     authorList = []
     tempList = []
     for item in combinedList:
-        if "Sender:" in item:
+        if "Stream:" in item:
             print(item)
             if tempList:
                 copyList = tempList[:]
@@ -112,7 +112,7 @@ def sortByAuthor(readList, unreadList):
         copyList = tempList[:]
         authorList.append(copyList)
 
-    authorList.sort(key=lambda x: x[0])
+    authorList.sort(key=lambda x: x[1])
     finalList = []
     for l in authorList:
         for item in l:
@@ -121,7 +121,7 @@ def sortByAuthor(readList, unreadList):
 
 def printToWindow(window, readList, unreadList, currentLineNumber):
     window.clear()
-    allList = unreadList + readList
+    allList = readList + unreadList
     count = 0
     currentLines = 0
     for line in allList:
@@ -158,28 +158,23 @@ def markAllRead(username, streamname):
     fpcopy.close
     os.rename("copy", outFileUserName)
 
-def updateReadMessages(streamname, username, currentLineNumber, unreadList):
+def updateReadMessages(streamname, username, currentLineNumber, unreadList, readList):
     outFileDataName = "messages/" + streamname + "StreamData"
     outFileUserName = "messages/" + streamname + "UserStream"
     outFileStreamName = "messages/" + streamname + "Stream"
     j = 0
     read = 0
     flag = 0
-    fp = open(outFileUserName, "r")
-    for line in fp:
-        if username == line.strip(" \n0123456789"):
-            num = line.strip(username + " ")
-            read = read + int(num)
-            break
-    fp.close()
-    for item in unreadList:
-        if "Sender: " in item:
+    allList = readList + unreadList
+    for item in allList:
+        if "Sender:" in item:
             read = read + 1
-        j = j + 1
-        x = j + currentLineNumber
-        if x >= 24:
+        x = currentLineNumber + 23
+        if j >= x:
             break
 
+    if read < int(getReadMessages(username, outFileUserName)):
+        read = int(getReadMessages(username, outFileUserName))
     #writing to output file
     fpUser = open(outFileUserName, "r+")
     fpcopy = open("copy", "w")
@@ -191,6 +186,12 @@ def updateReadMessages(streamname, username, currentLineNumber, unreadList):
     fpUser.close()
     fpcopy.close
     os.rename("copy", outFileUserName)
+
+def getLastItem(myList):
+    count = 0
+    for item in myList:
+        count = count + 1
+    return count
 
 def main():
     #checking for valid username, and placing it into variable
@@ -227,27 +228,32 @@ def main():
             readList = []
             for stream in userPermissionStreamList:
                 readList, unReadList = getToPrint(readList, unreadList, stream, username)
-                if mode == "author":
-                    readList = sortByAuthor(readList, unreadList)
+            if mode == "author":
+                readList = sortByAuthor(readList, unreadList)
+            currentLineNumber = getLastItem(readList)
+            if not unreadList:
                 currentLineNumber = 0
-                updateListFlag = 0
-                needToPrint = 1
+            updateListFlag = 0
+            needToPrint = 1
         elif updateListFlag == 1:
             unreadList = []
             readList = []
             readList, unReadList = getToPrint(readList, unreadList, inputFlag, username)
             if mode == "author":
                 readList = sortByAuthor(readList, unreadList)
-            currentLineNumber = 0
+            currentLineNumber = getLastItem(readList)
+            if not unreadList:
+                currentLineNumber = 0
             updateListFlag = 0
             needToPrint = 1
 
         #add update read messages
         if inputFlag == "all" and mode == "chrono":
             for stream in userPermissionStreamList:
-                updateReadMessagesAll(stream, username, currentLineNumber, unreadList)
+                lkm = 0
+                #updateReadMessagesAll(stream, username, currentLineNumber, unreadList)
         elif mode == "chrono":
-            updateReadMessages(inputFlag, username, currentLineNumber, unreadList)
+            updateReadMessages(inputFlag, username, currentLineNumber, unreadList, readList)
 
         # determines if it needs to print if a certain action is taken
         if needToPrint == 1:
