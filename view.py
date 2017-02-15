@@ -164,15 +164,14 @@ def updateReadMessages(streamname, username, currentLineNumber, unreadList, read
     outFileStreamName = "messages/" + streamname + "Stream"
     j = 0
     read = 0
-    flag = 0
     allList = readList + unreadList
     for item in allList:
-        if "Sender:" in item:
+        if "Date: " in item:
             read = read + 1
+        j = j + 1
         x = currentLineNumber + 23
         if j >= x:
             break
-
     if read < int(getReadMessages(username, outFileUserName)):
         read = int(getReadMessages(username, outFileUserName))
     #writing to output file
@@ -228,9 +227,10 @@ def main():
             readList = []
             for stream in userPermissionStreamList:
                 readList, unReadList = getToPrint(readList, unreadList, stream, username)
+            currentLineNumber = getLastItem(readList)
             if mode == "author":
                 readList = sortByAuthor(readList, unreadList)
-            currentLineNumber = getLastItem(readList)
+                currentLineNumber = 0
             if not unreadList:
                 currentLineNumber = 0
             updateListFlag = 0
@@ -239,9 +239,10 @@ def main():
             unreadList = []
             readList = []
             readList, unReadList = getToPrint(readList, unreadList, inputFlag, username)
+            currentLineNumber = getLastItem(readList)
             if mode == "author":
                 readList = sortByAuthor(readList, unreadList)
-            currentLineNumber = getLastItem(readList)
+                currentLineNumber = 0
             if not unreadList:
                 currentLineNumber = 0
             updateListFlag = 0
@@ -249,8 +250,8 @@ def main():
 
         #add update read messages
         if inputFlag == "all" and mode == "chrono":
-            for stream in userPermissionStreamList:
-                lkm = 0
+        #    for stream in userPermissionStreamList:
+            lkm = 0
                 #updateReadMessagesAll(stream, username, currentLineNumber, unreadList)
         elif mode == "chrono":
             updateReadMessages(inputFlag, username, currentLineNumber, unreadList, readList)

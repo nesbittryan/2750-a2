@@ -7,15 +7,15 @@
 class PostEntry {
     void readInput(char * stream, char * text) {
         printf("Stream: ");
-        fgets(stream, 49, stdin);
+        fgets(stream, 99, stdin);
         if(stream[0] == '\n') {
             printf("Stream must be identified...\n");
             exit(-1);
         }
         printf("Enter text: ");
         strcpy(text, "");
-        char string[100];
-        while(fgets(string, 99, stdin)) {
+        char string[80];
+        while(fgets(string, 79, stdin)) {
             printf("-");
             strcat(text, string);
         }
