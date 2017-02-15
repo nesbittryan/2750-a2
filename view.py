@@ -163,17 +163,24 @@ def updateReadMessages(streamname, username, currentLineNumber, unreadList, read
     outFileUserName = "messages/" + streamname + "UserStream"
     outFileStreamName = "messages/" + streamname + "Stream"
     j = 0
+    test = open("test", "w")
     read = 0
+    postStream = "DEFAULT"
     allList = readList + unreadList
     for item in allList:
+        if "Stream:" in item:
+            postStream = item[8:].strip()
         if "Date: " in item:
-            read = read + 1
+            test.write(postStream + ":" + streamname + "\n")
+            if postStream == streamname:
+                read = read + 1
         j = j + 1
         x = currentLineNumber + 23
         if j >= x:
             break
-    if read < int(getReadMessages(username, outFileUserName)):
-        read = int(getReadMessages(username, outFileUserName))
+    infileRead = int(getReadMessages(username, outFileUserName))
+    if read < int(infileRead):
+        read = int(infileRead)
     #writing to output file
     fpUser = open(outFileUserName, "r+")
     fpcopy = open("copy", "w")
@@ -250,9 +257,8 @@ def main():
 
         #add update read messages
         if inputFlag == "all" and mode == "chrono":
-        #    for stream in userPermissionStreamList:
-            lkm = 0
-                #updateReadMessagesAll(stream, username, currentLineNumber, unreadList)
+            for stream in userPermissionStreamList:
+                updateReadMessages(stream, username, currentLineNumber, unreadList, readList)
         elif mode == "chrono":
             updateReadMessages(inputFlag, username, currentLineNumber, unreadList, readList)
 
