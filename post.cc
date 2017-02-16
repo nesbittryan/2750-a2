@@ -95,7 +95,7 @@ class PostEntry {
             if(tm.tm_hour == 12) {
                 sprintf(copy, " %d:%02d", tm.tm_hour, tm.tm_min);
             } else {
-                sprintf(copy, " %d:%d", tm.tm_hour - 12, tm.tm_min);
+                sprintf(copy, " %d:%02d", tm.tm_hour - 12, tm.tm_min);
             }
             strcat(date, copy);
             strcat(date, " PM");
