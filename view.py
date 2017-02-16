@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import os, sys, curses
+from datetime import datetime
 
 def getUsername(inputArgs):
     if len(inputArgs) <= 1:
@@ -96,13 +97,32 @@ def getToPrint(readList, unreadList, streamname, username):
 
     return readList, unreadList
 
+def sortByDate(myList):
+    dateList = []
+    tempList = []
+    for item in myList:
+        if "Stream:" in item:
+            if tempList:
+                copyList = tempList[:]
+                dateList.append(copyList)
+                tempList[:] = []
+        tempList.append(item)
+    if tempList:
+        copyList = tempList[:]
+        dateList.append(copyList)
+    dateList.sort(key=lambda date: datetime.strptime(date[2], "Date: %b. %d, %Y, %I : %M %p\n"))
+    finalList = []
+    for l in dateList:
+        for item in l:
+            finalList.append(item)
+    return finalList
+
 def sortByAuthor(readList, unreadList):
     combinedList = readList + unreadList
     authorList = []
     tempList = []
     for item in combinedList:
         if "Stream:" in item:
-            print(item)
             if tempList:
                 copyList = tempList[:]
                 authorList.append(copyList)
@@ -163,7 +183,6 @@ def updateReadMessages(streamname, username, currentLineNumber, unreadList, read
     outFileUserName = "messages/" + streamname + "UserStream"
     outFileStreamName = "messages/" + streamname + "Stream"
     j = 0
-    test = open("test", "w")
     read = 0
     postStream = "DEFAULT"
     allList = readList + unreadList
@@ -171,7 +190,6 @@ def updateReadMessages(streamname, username, currentLineNumber, unreadList, read
         if "Stream:" in item:
             postStream = item[8:].strip()
         if "Date: " in item:
-            test.write(postStream + ":" + streamname + "\n")
             if postStream == streamname:
                 read = read + 1
         j = j + 1
@@ -190,7 +208,7 @@ def updateReadMessages(streamname, username, currentLineNumber, unreadList, read
         else:
             fpcopy.write(line)
     fpUser.close()
-    fpcopy.close
+    fpcopy.close()
     os.rename("copy", outFileUserName)
 
 def getLastItem(myList):
@@ -238,6 +256,9 @@ def main():
             if mode == "author":
                 readList = sortByAuthor(readList, unreadList)
                 currentLineNumber = 0
+            else:
+                readList = sortByDate(readList)
+                unreadList = sortByDate(unreadList)
             if not unreadList:
                 currentLineNumber = 0
             updateListFlag = 0
@@ -250,6 +271,9 @@ def main():
             if mode == "author":
                 readList = sortByAuthor(readList, unreadList)
                 currentLineNumber = 0
+            else:
+                readList = sortByDate(readList)
+                unreadList = sortByDate(unreadList)
             if not unreadList:
                 currentLineNumber = 0
             updateListFlag = 0
@@ -269,13 +293,12 @@ def main():
             needToPrint = 0
 
         c = window.getch()
-
-        if c == ord('i'):#curses.KEY_PPAGE:      # change to page up
+        if c == 65:
             currentLineNumber = currentLineNumber - 23;
             if currentLineNumber < 0:
                 currentLineNumber = 0
             needToPrint = 1
-        elif c == ord('k'):#curses.KEY_NPAGE:        # change to page down
+        elif c == 66:
             currentLineNumber = currentLineNumber + 23;
             maxline = getLastLine(readList, unreadList)
             if currentLineNumber >= int(maxline):

@@ -81,16 +81,24 @@ class PostEntry {
                 strcpy(date, "Dec. ");
                 break;
         }
-        sprintf(copy, "%d, %d",tm.tm_mday,tm.tm_year + 1900);
+
+        sprintf(copy, "%d,", tm.tm_mday);
+        strcat(date, copy);
+        strcat(date, " ");
+        sprintf(copy, "%d,", tm.tm_year + 1900);
         strcat(date, copy);
         if(tm.tm_hour < 12) {
-            sprintf(copy, " %d:%d", tm.tm_hour, tm.tm_min);
+            sprintf(copy, "%d:%d", tm.tm_hour, tm.tm_min);
             strcat(date, copy);
-            strcat(date, "AM");
+            strcat(date, " AM");
         } else {
-            sprintf(copy, " %d:%d", tm.tm_hour - 12, tm.tm_min);
+            if(tm.tm_hour == 12) {
+                sprintf(copy, " %d:%02d", tm.tm_hour, tm.tm_min);
+            } else {
+                sprintf(copy, " %d:%d", tm.tm_hour - 12, tm.tm_min);
+            }
             strcat(date, copy);
-            strcat(date, "PM");
+            strcat(date, " PM");
         }
     }
     void submitPost(struct userPost sp) {

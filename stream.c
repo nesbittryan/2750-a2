@@ -22,6 +22,9 @@ void updateStream(struct userPost *st) {
     streamFile = fopen(streamFilename, "r");
     if(streamFile == NULL) {
         printf("Steam <%s> does not exist, exiting...\n", st->streamname);
+        free(streamFilename);
+        free(userStreamFilename);
+        free(streamDataFilename);
         return;
     } else {
         /* STREAM DOES EXIST */
@@ -167,6 +170,7 @@ void removeUser(char *username, char *list) {
     char * token = strtok(listCopy, ",");
     while(token != NULL) {
         char * filename = malloc(sizeof(char) * strlen(list) + 20);
+        int flag = 0;
         strcpy(filename, "messages/");
         strcat(filename,  token);
         strcat(filename, "UserStream");
@@ -191,14 +195,19 @@ void removeUser(char *username, char *list) {
                     fprintf(copy, "%s", str);
                 } else {
                     printf("Removing %s from <%s>...\n", username, token);
+                    flag = 1;
                 }
                 free(copyStr);
+            }
+            if(flag == 0) {
+                printf("%s not found in <%s>...\n",username, token);
             }
             rename("messages/copy", filename);
             fclose(copy);
             fclose(userStreamFile);
         } else {
             /* STREAM DOES NOT EXIST */
+            printf("<%s> Does not exist...\n", token);
         }
         free(filename);
         token = strtok(NULL, ",");
